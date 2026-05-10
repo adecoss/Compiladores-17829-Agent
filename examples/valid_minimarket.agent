@@ -1,0 +1,22 @@
+agent MiniMarketAgent {
+
+    perceptions {
+        clients : int;
+        milkStock : int;
+    }
+
+    state {
+        busy : bool = false;
+    }
+
+    actions {
+        action openNewBox();
+        action requestRestock();
+    }
+
+    behavior {
+        if milkStock < 5 then do requestRestock();
+        if clients > 20 then do openNewBox();
+        if busy == false then do requestRestock();
+    }
+}

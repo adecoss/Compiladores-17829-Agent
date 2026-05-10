@@ -1,0 +1,24 @@
+agent WarehouseManager {
+
+    perceptions {
+        stock : int;
+        temperature : float;
+        intruderDetected : bool;
+    }
+
+    state {
+        alertLevel : int = 0;
+    }
+
+    actions {
+        action restock();
+        action activateAlarm();
+    }
+
+    behavior {
+        if stock < 10 then do restock();
+        if temperature > 35.5 then do activateAlarm();
+        if alertLevel > 0 then do activateAlarm();
+        if intruderDetected == true then do activateAlarm();
+    }
+}

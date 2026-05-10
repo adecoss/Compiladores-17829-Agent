@@ -1,0 +1,19 @@
+agent UndefinedTest {
+
+    perceptions {
+        stock : int;
+    }
+
+    state {
+        alarm : bool = false;
+    }
+
+    actions {
+        action activateAlarm();
+    }
+
+    behavior {
+        if temperature > 50 then do activateAlarm();
+        if stock < 5 then do restock();
+    }
+}

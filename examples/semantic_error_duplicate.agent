@@ -1,0 +1,20 @@
+agent DuplicateTest {
+
+    perceptions {
+        stock : int;
+        stock : int;
+    }
+
+    state {
+        alert : bool = false;
+    }
+
+    actions {
+        action notifyManager();
+        action notifyManager();
+    }
+
+    behavior {
+        if stock < 5 then do notifyManager();
+    }
+}

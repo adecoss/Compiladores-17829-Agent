@@ -1,0 +1,20 @@
+agent TypeErrorTest {
+
+    perceptions {
+        productName : string;
+        active : bool;
+    }
+
+    state {
+        threshold : int = "high";
+    }
+
+    actions {
+        action notifyManager();
+    }
+
+    behavior {
+        if productName > 10 then do notifyManager();
+        if active == true then do notifyManager();
+    }
+}
