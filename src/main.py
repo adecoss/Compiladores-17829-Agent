@@ -13,12 +13,20 @@ from semantic_analyzer import SemanticAnalyzer
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def display_path(path):
+    """Devuelve una ruta corta para mensajes de consola."""
+    try:
+        return path.resolve().relative_to(BASE_DIR).as_posix()
+    except ValueError:
+        return path.name
+
+
 def analyze_file(path):
     """Ejecuta analisis lexico, sintactico y semantico para un archivo."""
     path = Path(path)
 
     print("=" * 60)
-    print(f"Analizando archivo: {path}")
+    print(f"Analizando archivo: {display_path(path)}")
     print("=" * 60)
 
     # ANTLR lee el archivo como flujo de caracteres.
