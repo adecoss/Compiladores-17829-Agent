@@ -12,14 +12,11 @@
 
 - [Motivación](#-motivación)
 - [¿Qué es AgentDSL?](#-qué-es-agentdsl)
-- [Ejemplo rápido](#-ejemplo-rápido)
 - [Arquitectura del lenguaje](#-arquitectura-del-lenguaje)
 - [Características](#-características)
 - [Validaciones semánticas](#-validaciones-semánticas)
-- [Gramática completa](#-gramática-completa)
 - [Estructura del proyecto](#-estructura-del-proyecto)
 - [Instalación y uso](#-instalación-y-uso)
-- [Ejemplos adicionales](#-ejemplos-adicionales)
 - [Roadmap](#-roadmap)
 - [Equipo](#-equipo)
 
@@ -27,9 +24,7 @@
 
 ## 💡 Motivación
 
-El desarrollo de agentes inteligentes actualmente requiere lenguajes de propósito general como Python o Java, donde la **lógica de comportamiento** se mezcla con **detalles técnicos** de implementación: clases, métodos, estructuras de control anidadas y manejo de estado explícito.
-
-### El problema
+El desarrollo de agentes inteligentes actualmente requiere lenguajes de propósito general como Python o Java, donde la lógica de comportamiento se mezcla con detalles técnicos de implementación: clases, métodos, estructuras de control anidadas y manejo de estado explícito.
 
 | Aspecto | Con lenguajes tradicionales | Con AgentDSL |
 |---|---|---|
@@ -38,15 +33,13 @@ El desarrollo de agentes inteligentes actualmente requiere lenguajes de propósi
 | Público objetivo | Solo programadores | Programadores + especialistas de dominio |
 | Mantenimiento | Difícil al escalar | Estructura modular por diseño |
 
-### ¿Por qué no usar lo que ya existe?
-
-Frameworks como **JADE** o los **behavior trees** de motores de videojuegos son bibliotecas sobre lenguajes existentes, no lenguajes independientes. Requieren entornos complejos, conocimiento previo del lenguaje base y una curva de aprendizaje considerable.
+Frameworks como **JADE** o los **behavior trees** de motores de videojuegos son bibliotecas sobre lenguajes existentes, no lenguajes independientes. Requieren entornos complejos, conocimiento previo del lenguaje base y una curva de aprendizaje considerable. AgentDSL propone una alternativa independiente y accesible.
 
 ---
 
 ## 🧠 ¿Qué es AgentDSL?
 
-AgentDSL es un lenguaje diseñado para describir agentes inteligentes en términos de:
+AgentDSL es un lenguaje diseñado para describir agentes inteligentes en términos de lo que perciben, el estado en que se encuentran y las acciones que ejecutan. Cada agente se define mediante cuatro secciones obligatorias:
 
 ```
 ┌─────────────────────────────────────────┐
@@ -62,57 +55,11 @@ AgentDSL es un lenguaje diseñado para describir agentes inteligentes en términ
 └─────────────┴───────────────────────────┘
 ```
 
-Cada agente sigue un ciclo continuo de **percepción → decisión → acción**, y la sintaxis del lenguaje refleja exactamente esa estructura.
-
----
-
-## 🚀 Ejemplo rápido
-
-```
-agent Bodeguero {
-  perceptions {
-    stock : int;
-    hora : int;
-  }
-  state {
-    alertLevel : int = 0;
-  }
-  actions {
-    action restock();
-    action close();
-  }
-  behavior {
-    if stock < 10 then do restock();
-    if hora > 22 then do close();
-  }
-}
-```
-
-**¿Qué hace este agente?** El `Bodeguero` percibe el nivel de stock y la hora actual. Si el stock baja de 10 unidades, repone inventario. Si pasan las 10 PM, cierra la tienda. Sin clases, sin imports, sin boilerplate.
+Cada agente sigue un ciclo continuo de **percepción → decisión → acción**, y la sintaxis del lenguaje refleja exactamente esa estructura. Ver los programas de ejemplo en `examples/` para entender la sintaxis en la práctica.
 
 ---
 
 ## 🏗 Arquitectura del lenguaje
-
-```
-                    ┌──────────┐
-                    │ Programa │
-                    └────┬─────┘
-                         │ contiene 1..*
-                 ┌───────┴───────┐
-                 │    Agente     │
-                 └───────┬───────┘
-                         │ se compone de
-          ┌──────┬───────┼────────┬──────┐
-          │      │       │        │      │
-          ▼      ▼       ▼        ▼      │
-     ┌────────┐┌─────┐┌───────┐┌────────┐│
-     │Percep- ││State││Actions││Behavior││
-     │tions   ││     ││       ││        ││
-     └────────┘└─────┘└───────┘└────────┘│
-                                         │
-     Ciclo: Percibir → Decidir → Actuar ◄┘
-```
 
 ### Pipeline del compilador
 
@@ -132,36 +79,35 @@ Código fuente (.adsl)
                                           └───────────────┘
 ```
 
+La gramática formal está definida en `grammar/AgentDSL.g4` con reglas de parser (estructura sintáctica) y reglas de lexer (tokens reconocidos).
+
 ---
 
 ## ✨ Características
 
 ### Tipos de datos soportados
 
-| Tipo | Descripción | Ejemplo |
-|------|-------------|---------|
-| `int` | Enteros | `stock : int;` |
-| `float` | Decimales | `temperatura : float;` |
-| `string` | Cadenas de texto | `nombre : string;` |
-| `bool` | Booleanos | `activo : bool;` |
+| Tipo | Descripción | Uso típico |
+|------|-------------|------------|
+| `int` | Enteros | Contadores, niveles, horas |
+| `float` | Decimales | Temperaturas, umbrales |
+| `string` | Cadenas de texto | Nombres, modos, etiquetas |
+| `bool` | Booleanos | Flags, estados on/off |
 
 ### Operadores de comparación
 
 | Operador | Significado |
 |----------|-------------|
-| `>` | Mayor que |
-| `<` | Menor que |
-| `==` | Igual a |
-| `!=` | Diferente de |
-| `>=` | Mayor o igual |
-| `<=` | Menor o igual |
+| `>` `<` | Mayor / menor que |
+| `==` `!=` | Igual / diferente |
+| `>=` `<=` | Mayor o igual / menor o igual |
 
 ### Secciones del agente
 
-- **`perceptions {}`** — Variables que el agente percibe del entorno externo.
-- **`state {}`** — Variables internas con valor inicial opcional.
-- **`actions {}`** — Acciones que el agente puede ejecutar.
-- **`behavior {}`** — Reglas condicionales con formato `if <condición> then do <acción>();`.
+- **`perceptions`** — Variables que el agente percibe del entorno externo.
+- **`state`** — Variables internas con valor inicial opcional.
+- **`actions`** — Acciones que el agente puede ejecutar.
+- **`behavior`** — Reglas condicionales con formato `if <condición> then do <acción>()`.
 
 ---
 
@@ -171,89 +117,14 @@ El analizador semántico verifica que un programa sintácticamente correcto tamb
 
 | Validación | Tipo | Ejemplo detectado |
 |---|---|---|
-| Declaración duplicada | ❌ Error | `stock : int;` declarado dos veces |
-| Variable no declarada | ❌ Error | Usar `precio` en behavior sin declararlo |
-| Acción no declarada | ❌ Error | `do enviar();` sin declararla en actions |
-| Tipo incompatible en asignación | ❌ Error | `count : int = "hola";` |
-| Tipo incompatible en comparación | ❌ Error | `if nombre > 10 then ...` |
-| Variable sin usar | ⚠️ Advertencia | Declarar `nivel` pero nunca referenciarlo |
+| Declaración duplicada | ❌ Error | Una variable declarada dos veces en el mismo scope |
+| Variable no declarada | ❌ Error | Usar una variable en behavior sin declararla en perceptions/state |
+| Acción no declarada | ❌ Error | Invocar una acción en behavior sin declararla en actions |
+| Tipo incompatible en asignación | ❌ Error | Asignar un string a una variable declarada como int |
+| Tipo incompatible en comparación | ❌ Error | Comparar un string con un int en una condición |
+| Variable sin usar | ⚠️ Advertencia | Declarar una variable que nunca se referencia en behavior |
 
----
-
-## 📜 Gramática completa
-
-La gramática formal está implementada en ANTLR4 y se encuentra en `grammar/AgentDSL.g4`:
-
-```antlr
-grammar AgentDSL;
-
-// ─── Reglas del Parser ───────────────────────────
-
-program         : agentDecl+ EOF ;
-
-agentDecl       : AGENT ID LBRACE section* RBRACE ;
-
-section         : perceptionsSection
-                | stateSection
-                | actionsSection
-                | behaviorSection ;
-
-perceptionsSection : PERCEPTIONS LBRACE perceptionDecl* RBRACE ;
-perceptionDecl    : ID COLON type SEMI ;
-
-stateSection    : STATE LBRACE stateDecl* RBRACE ;
-stateDecl       : ID COLON type (ASSIGN literal)? SEMI ;
-
-actionsSection  : ACTIONS LBRACE actionDecl* RBRACE ;
-actionDecl      : ACTION ID LPAREN RPAREN SEMI ;
-
-behaviorSection : BEHAVIOR LBRACE ruleDecl* RBRACE ;
-ruleDecl        : IF condition THEN DO ID LPAREN RPAREN SEMI ;
-
-condition       : expression comparisonOperator expression ;
-expression      : ID | literal ;
-comparisonOperator : GT | LT | EQ | NEQ | GTE | LTE ;
-
-type            : INT_TYPE | FLOAT_TYPE | STRING_TYPE | BOOL_TYPE ;
-literal         : INT | FLOAT | STRING | TRUE | FALSE ;
-
-// ─── Reglas del Lexer ────────────────────────────
-
-AGENT       : 'agent';
-PERCEPTIONS : 'perceptions';
-STATE       : 'state';
-ACTIONS     : 'actions';
-ACTION      : 'action';
-BEHAVIOR    : 'behavior';
-IF          : 'if';
-THEN        : 'then';
-DO          : 'do';
-
-INT_TYPE    : 'int';
-FLOAT_TYPE  : 'float';
-STRING_TYPE : 'string';
-BOOL_TYPE   : 'bool';
-
-TRUE  : 'true';
-FALSE : 'false';
-
-GT : '>';   LT  : '<';
-EQ : '==';  NEQ : '!=';
-GTE: '>=';  LTE : '<=';
-
-ASSIGN : '=';  COLON : ':';
-SEMI   : ';';  COMMA : ',';
-LBRACE : '{';  RBRACE : '}';
-LPAREN : '(';  RPAREN : ')';
-
-FLOAT  : [0-9]+ '.' [0-9]+ ;
-INT    : [0-9]+ ;
-STRING : '"' (~["\\] | '\\' .)* '"' ;
-ID     : [a-zA-Z_][a-zA-Z0-9_]* ;
-
-WS      : [ \t\r\n]+ -> skip ;
-COMMENT : '//' ~[\r\n]* -> skip ;
-```
+La implementación se encuentra en `src/semantic_analyzer.py` con soporte de `src/symbol_table.py`.
 
 ---
 
@@ -262,19 +133,14 @@ COMMENT : '//' ~[\r\n]* -> skip ;
 ```
 AgentDSL/
 ├── grammar/
-│   └── AgentDSL.g4              # Gramática ANTLR4
+│   └── AgentDSL.g4              # Gramática ANTLR4 (lexer + parser)
 ├── src/
 │   ├── generated/               # Archivos generados por ANTLR (no editar)
-│   │   ├── AgentDSLLexer.py
-│   │   ├── AgentDSLParser.py
-│   │   └── AgentDSLVisitor.py
 │   ├── main.py                  # Punto de entrada principal
-│   ├── semantic_analyzer.py     # Visitor que realiza validaciones semánticas
+│   ├── semantic_analyzer.py     # Visitor con validaciones semánticas
 │   ├── symbol_table.py          # Tabla de símbolos (percepciones, estados, acciones)
 │   └── semantic_error.py        # Clase para formatear errores semánticos
 └── examples/                    # Programas de prueba en AgentDSL
-    ├── bodeguero.adsl
-    └── ...
 ```
 
 ---
@@ -285,17 +151,12 @@ AgentDSL/
 
 - Python 3.10+
 - Java Runtime (para ANTLR4)
-- ANTLR4 tool ([instrucciones de instalación](https://www.antlr.org/))
-
-### Instalar dependencias
-
-```bash
-pip install antlr4-python3-runtime
-```
+- ANTLR4 tool ([instrucciones](https://www.antlr.org/))
+- `pip install antlr4-python3-runtime`
 
 ### Regenerar parser y lexer
 
-Ejecutar desde la raíz del proyecto cada vez que se modifique `AgentDSL.g4`:
+Ejecutar desde la raíz del proyecto cada vez que se modifique la gramática:
 
 ```powershell
 antlr4 -Dlanguage=Python3 -visitor -o src\generated -Xexact-output-dir grammar\AgentDSL.g4
@@ -308,70 +169,6 @@ python src\main.py
 ```
 
 El programa procesará los archivos de ejemplo y mostrará errores semánticos y advertencias encontrados.
-
----
-
-## 📝 Ejemplos adicionales
-
-### Agente con múltiples reglas
-
-```
-agent Guardia {
-  perceptions {
-    movimiento : bool;
-    horaActual : int;
-    temperatura : float;
-  }
-  state {
-    alerta : bool = false;
-    turno : string = "noche";
-  }
-  actions {
-    action activarAlarma();
-    action llamarRefuerzo();
-    action registrarEvento();
-  }
-  behavior {
-    if movimiento == true then do activarAlarma();
-    if horaActual > 23 then do llamarRefuerzo();
-    if temperatura > 45.0 then do registrarEvento();
-  }
-}
-```
-
-### Programa con múltiples agentes
-
-```
-agent Sensor {
-  perceptions {
-    humedad : float;
-  }
-  state {
-    umbral : float = 80.0;
-  }
-  actions {
-    action alertar();
-  }
-  behavior {
-    if humedad > 80.0 then do alertar();
-  }
-}
-
-agent Controlador {
-  perceptions {
-    alertaActiva : bool;
-  }
-  state {
-    modo : string = "auto";
-  }
-  actions {
-    action apagarSistema();
-  }
-  behavior {
-    if alertaActiva == true then do apagarSistema();
-  }
-}
-```
 
 ---
 
